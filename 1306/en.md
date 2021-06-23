@@ -1,37 +1,35 @@
 # Editorial for LOJ-1306: Solutions to an Equation
 
-This is the classic question of finding the solutions for a linear Diophantine Equation.
+This is the classic question of finding the solutions for a linear Diophantine Equation. </br>
+Reference: https://cp-algorithms.com/algebra/linear-diophantine-equation.html
 
 ```C++
-int main(){
-    
-    cin.tie(0);
-    ios_base::sync_with_stdio(false);
-    
-    ll a, b, c, x1, x2, y1, y2;
-    cin>>a>>b>>c>>x1>>x2>>y1>>y2;
-    
-    c=-c;                                                       //we are solving in Ax+By=C format but the i/p is in ax+by+c=0 format hence we reverse c's sign.
-    
-    if(a==0 && b==0 && c==0) cout<<(x2-x1+1)*(y2-y1+1)<<'\n';   //this is the trivial case 0+0=0 and all numbers in the interval will satisfy the equation
-    
-    else if(a==0 && b==0) cout<<0<<'\n';                        //only a and b are 0 => 0=C
-    
-    else if(a==0){                                              //only a is 0, By=C
-        if(c%b!=0 || y1>c/b || y2<c/b) cout<<0;                 //Ans is 0 when y doesn't exist ie. C doesn't divide B; or C does divide B but C/B doesn't fall in the given interval
-        else cout<<(x2-x1+1)<<'\n';                             //if such a y exists in the given interval, then it can be paired with any x in the given interval     }
-    
-    else if(b==0){                                              //Ax=C, same thing as above.
-        if(c%a!=0 || x1>c/a || x2<c/a) cout<<0;
-        else cout<<(y2-y1+1)<<'\n';
+ll gcd(ll a, ll b, ll& x, ll& y) {
+    //Extended euclidean algorithm. Apart from giving the g=gcd(A,B), it gives an x and y which are solutions to the equation Ax+By=G. 
+    if (b == 0) {
+        x = 1;
+        y = 0;
+        return a;
     }
-    
-    else cout<<find_all_solutions(a, b, c, x1,x2,y1,y2)<<'\n'; //Above were the edge cases. Onto the real problem!
-    
-    return 0;
+    ll x1, y1;
+    ll d = gcd(b, a % b, x1, y1);
+    x = y1;
+    y = x1 - y1 * (a / b);
+    return d;
 }
-```
-```C++
+bool find_any_solution(ll a, ll b, ll c, ll &x0, ll &y0, ll &g){
+ 
+    g=gcd(abs(a), abs(b), x0, y0);  //1. Apply extended Euclidean Algorithms
+    if(c%g)                         //if it's not 0 then ax+by=c has no integral solution
+        return false;
+    
+    x0 *=c/g;                       //2
+    y0 *=c/g;                       //3
+    
+    if(a<0) x0=-x0;
+    if(b<0) y0=-y0;
+    return true;
+}
 void shift_solution(ll & x, ll & y, ll a, ll b, ll cnt) {
     x += cnt * b;
     y -= cnt * a;
@@ -83,45 +81,45 @@ ll find_all_solutions(ll a, ll b, ll c, ll minx, ll maxx, ll miny, ll maxy) {
  
     return (rx - lx) / abs(b) + 1;
 }
-```
 
-
-```C++
-bool find_any_solution(ll a, ll b, ll c, ll &x0, ll &y0, ll &g){
- 
-    g=gcd(abs(a), abs(b), x0, y0);  //1. Apply extended Euclidean Algorithms
-    if(c%g)                         //if it's not 0 then ax+by=c has no integral solution
-        return false;
+int main(){
     
-    x0 *=c/g;                       //2
-    y0 *=c/g;                       //3
+    cin.tie(0);
+    ios_base::sync_with_stdio(false);
     
-    if(a<0) x0=-x0;
-    if(b<0) y0=-y0;
-    return true;
+    ll a, b, c, x1, x2, y1, y2;
+    cin>>a>>b>>c>>x1>>x2>>y1>>y2;
+    
+    c=-c;                                                       //we are solving in Ax+By=C format but the i/p is in ax+by+c=0 format hence we reverse c's sign.
+    
+    if(a==0 && b==0 && c==0) cout<<(x2-x1+1)*(y2-y1+1)<<'\n';   //this is the trivial case 0+0=0 and all numbers in the interval will satisfy the equation
+    
+    else if(a==0 && b==0) cout<<0<<'\n';                        //only a and b are 0 => 0=C
+    
+    else if(a==0){                                              //only a is 0, By=C
+        if(c%b!=0 || y1>c/b || y2<c/b) cout<<0;                 //Ans is 0 when y doesn't exist ie. C doesn't divide B; or C does divide B but C/B doesn't fall in the given interval
+        else cout<<(x2-x1+1)<<'\n';                             //if such a y exists in the given interval, then it can be paired with any x in the given interval     }
+    
+    else if(b==0){                                              //Ax=C, same thing as above.
+        if(c%a!=0 || x1>c/a || x2<c/a) cout<<0;
+        else cout<<(y2-y1+1)<<'\n';
+    }
+    
+    else cout<<find_all_solutions(a, b, c, x1,x2,y1,y2)<<'\n'; //Above were the edge cases. Onto the real problem!
+    
+    return 0;
 }
 ```
-Explanation: From 1, we have a solution for Ax<sub>g</sub> + By<sub>g</sub> = g.
-c/g*(Ax<sub>g</sub> + c/g*(By<sub>g</sub>) = c/g*(g)
-=> A(x<sub>g</sub> * c/g) + B(y<sub>g</sub> * c/g) = C
+
+Explanation for find_any_solution: 
+From 1, we have a solution for Ax<sub>g</sub> + By<sub>g</sub> = g.
+
+Multiply and divide by c/g to get:
+
+c/g*(Ax<sub>g</sub>) + c/g*(By<sub>g</sub>) = c/g*(g)    <br/>
+=> A(x<sub>g</sub> * c/g) + B(y<sub>g</sub> * c/g) = C  <br/>
 Hence to obtain a solution for Ax+By=C, we multiply x0 and y0 by c/g in 2 and 3.
 
 Afterwards we make the sign of x0 and y0 opposite to that of their coefficients. 
 
-```C++
-ll gcd(ll a, ll b, ll& x, ll& y) {
-    //Extended euclidean algorithm. Apart from giving the g=gcd(A,B), it gives an x and y which are solutions to the equation Ax+By=G. 
-    if (b == 0) {
-        x = 1;
-        y = 0;
-        return a;
-    }
-    ll x1, y1;
-    ll d = gcd(b, a % b, x1, y1);
-    x = y1;
-    y = x1 - y1 * (a / b);
-    return d;
-}
-```
 
-Reference: https://cp-algorithms.com/algebra/linear-diophantine-equation.html
